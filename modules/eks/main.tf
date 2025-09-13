@@ -87,6 +87,10 @@ data "aws_iam_role" "cluster" {
 resource "aws_cloudwatch_log_group" "log" {
   name              = "/aws/eks/${var.prefix}-${var.cluster_name}/cluster"
   retention_in_days = var.log_retention_days
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_eks_cluster" "cluster" {
