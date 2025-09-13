@@ -40,6 +40,8 @@ Your AWS credentials need the following managed policies (minimum):
 - `AmazonEKS_CNI_Policy`
 - `AmazonEC2ContainerRegistryReadOnly`
 - `AmazonS3FullAccess` (for state bucket access)
+ 
+But in AWS Academy you can use LabRole role.
 
 Or create a custom policy with specific permissions for your resources.
 
