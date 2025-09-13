@@ -53,7 +53,15 @@ jobs:
     - name: Terraform Plan
       id: plan
       if: github.event_name == 'pull_request'
-      run: terraform plan -no-color -input=false
+      run: |
+        terraform plan -no-color -input=false \
+          -var="prefix=grupo-275" \
+          -var="cluster_name=cluster-ian" \
+          -var="log_retention_days=30" \
+          -var="desired_size=2" \
+          -var="max_size=4" \
+          -var="minimum_size=2" \
+          -var="vpc_cidr_block=10.0.0.0/16"
       continue-on-error: true
 
     - name: Update Pull Request
@@ -87,9 +95,19 @@ jobs:
           })
 
     - name: Terraform Plan Status
-      if: steps.plan.outcome == 'failure'
-      run: exit 1
+      if: github.event_name == 'pull_request' && steps.plan.outcome == 'failure'
+      run: |
+        echo "Terraform Plan failed!"
+        exit 1
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false
+      run: |
+        terraform apply -auto-approve -input=false \
+          -var="prefix=grupo-275" \
+          -var="cluster_name=cluster-ian" \
+          -var="log_retention_days=30" \
+          -var="desired_size=2" \
+          -var="max_size=4" \
+          -var="minimum_size=2" \
+          -var="vpc_cidr_block=10.0.0.0/16"
