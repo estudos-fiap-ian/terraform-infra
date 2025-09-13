@@ -33,3 +33,6 @@ terraform.rc
 kubeconfig
 *.kubeconfig
 ~/.kube/config
+
+# Intellij
+.idea
