@@ -17,3 +17,8 @@ output "nlb_dns_name" {
   description = "DNS name of the Network Load Balancer"
   value       = module.nlb.nlb_dns_name
 }
+
+output "nlb_listener_arn" {
+  description = "ARN of the NLB listener for API Gateway integration"
+  value       = module.nlb.nlb_listener_arn
+}

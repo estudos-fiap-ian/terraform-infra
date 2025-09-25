@@ -12,3 +12,8 @@ output "nlb_zone_id" {
   description = "Zone ID of the Network Load Balancer"
   value       = aws_lb.golang_api_nlb.zone_id
 }
+
+output "nlb_listener_arn" {
+  description = "ARN of the NLB listener"
+  value       = aws_lb_listener.golang_api_listener.arn
+}
