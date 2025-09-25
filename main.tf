@@ -31,3 +31,11 @@ module "eks" {
   minimum_size       = var.minimum_size
   log_retention_days = var.log_retention_days
 }
+
+module "nlb" {
+  source       = "./modules/nlb"
+  prefix       = var.prefix
+  vpc_id       = module.new-vpc.vpc_id
+  subnet_ids   = module.new-vpc.subnet_ids
+  cluster_name = var.cluster_name
+}
