@@ -4,7 +4,7 @@
 
 You need to configure the following secrets in your GitHub repository:
 
-1. Go to your GitHub repository
+1. Go to your GitHub repository.
 2. Navigate to Settings → Secrets and variables → Actions
 3. Add the following repository secrets:
 
