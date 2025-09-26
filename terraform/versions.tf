@@ -9,12 +9,7 @@ terraform {
   }
 
   backend "s3" {
-    # These values will be provided via terraform init -backend-config
-    # bucket         = "your-terraform-state-bucket"
-    # key            = "terraform-infra/terraform.tfstate"
-    # region         = "us-east-1"
-    # encrypt        = true
-    # dynamodb_table = "terraform-state-lock"
+    # Backend configuration will be provided via terraform init -backend-config
   }
 }
 

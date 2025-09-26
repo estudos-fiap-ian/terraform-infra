@@ -5,7 +5,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = merge(local.common_tags, {
-    Name = "${var.project_name}-${var.environment}-vpc"
+    Name                                                               = "${var.project_name}-${var.environment}-vpc"
     "kubernetes.io/cluster/${var.project_name}-${var.environment}-eks" = "shared"
   })
 }
@@ -29,10 +29,10 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
-    Type = "Public"
+    Name                                                               = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
+    Type                                                               = "Public"
     "kubernetes.io/cluster/${var.project_name}-${var.environment}-eks" = "shared"
-    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/role/elb"                                           = "1"
   })
 }
 
@@ -45,10 +45,10 @@ resource "aws_subnet" "private" {
   availability_zone = var.availability_zones[count.index]
 
   tags = merge(local.common_tags, {
-    Name = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
-    Type = "Private"
+    Name                                                               = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
+    Type                                                               = "Private"
     "kubernetes.io/cluster/${var.project_name}-${var.environment}-eks" = "shared"
-    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/role/internal-elb"                                  = "1"
   })
 }
 
@@ -56,7 +56,7 @@ resource "aws_subnet" "private" {
 resource "aws_eip" "nat" {
   count = length(var.availability_zones)
 
-  domain = "vpc"
+  domain     = "vpc"
   depends_on = [aws_internet_gateway.main]
 
   tags = merge(local.common_tags, {
@@ -130,9 +130,9 @@ resource "aws_security_group" "eks_control_plane" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = [var.vpc_cidr]
   }
 
