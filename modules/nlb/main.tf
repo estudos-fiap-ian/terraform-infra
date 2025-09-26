@@ -41,7 +41,7 @@ resource "aws_lb_target_group" "golang_api_tg" {
 
 resource "aws_lb_listener" "golang_api_listener" {
   load_balancer_arn = aws_lb.golang_api_nlb.arn
-  port              = "80"
+  port              = "8080"
   protocol          = "TCP"
 
   default_action {
