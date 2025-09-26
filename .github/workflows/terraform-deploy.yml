@@ -1,0 +1,135 @@
+name: Deploy Infrastructure with Terraform
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  TF_VAR_prefix: grupo-275
+  TF_VAR_cluster_name: grupo-275-cluster-ian
+  TF_VAR_vpc_cidr_block: "10.0.0.0/16"
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ~1.2
+        terraform_wrapper: false
+
+    - name: Terraform Format
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+
+    - name: Terraform Init
+      id: init
+      run: terraform init
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      if: github.event_name == 'pull_request'
+      run: terraform plan -no-color -input=false
+      continue-on-error: true
+
+    - name: Update Pull Request
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+          <details><summary>Show Plan</summary>
+
+          \`\`\`\n
+          ${process.env.PLAN}
+          \`\`\`
+
+          </details>
+
+          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false
+
+    - name: Output infrastructure details
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        echo "=== Infrastructure Outputs ==="
+        echo "VPC ID: $(terraform output -raw vpc_id)"
+        echo "NLB ARN: $(terraform output -raw nlb_arn)"
+        echo "NLB DNS Name: $(terraform output -raw nlb_dns_name)"
+        echo "NLB Listener ARN: $(terraform output -raw nlb_listener_arn)"
+        echo "Cluster Name: $(terraform output -raw cluster_name)"
+
+        echo "=== Infrastructure Ready for API Gateway Integration ==="
+        echo "✅ VPC Link can now connect to NLB"
+        echo "✅ EKS cluster ready for API deployment"
+        echo "✅ NLB configured with NodePort 30080 target group"
+
+  notify-completion:
+    needs: terraform
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Notify Success
+      if: needs.terraform.result == 'success'
+      run: |
+        echo "🎉 Infrastructure deployment completed successfully!"
+        echo "🔗 Next steps:"
+        echo "   1. Deploy API to EKS cluster"
+        echo "   2. Deploy serverless functions and API Gateway"
+        echo "   3. Both will use the same domain via VPC Link"
+
+    - name: Notify Failure
+      if: needs.terraform.result == 'failure'
+      run: |
+        echo "❌ Infrastructure deployment failed!"
+        echo "Check the logs above for details."
+        exit 1

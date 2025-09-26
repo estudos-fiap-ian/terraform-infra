@@ -22,3 +22,8 @@ output "nlb_listener_8080_arn" {
   description = "ARN of the NLB listener for direct access (port 8080)"
   value       = aws_lb_listener.golang_api_listener.arn
 }
+
+output "vpc_link_security_group_id" {
+  description = "Security Group ID for VPC Link"
+  value       = aws_security_group.vpc_link_sg.id
+}

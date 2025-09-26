@@ -14,6 +14,39 @@ resource "aws_lb" "golang_api_nlb" {
   }
 }
 
+# Security group for VPC Link access to NLB
+resource "aws_security_group" "vpc_link_sg" {
+  name_prefix = "${var.prefix}-vpc-link-"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "Allow HTTP from API Gateway VPC Link"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]  # VPC CIDR
+  }
+
+  ingress {
+    description = "Allow custom port from API Gateway VPC Link"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]  # VPC CIDR
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.prefix}-vpc-link-sg"
+  }
+}
+
 resource "aws_lb_target_group" "golang_api_tg" {
   name     = "${var.prefix}-golang-api-tg"
   port     = 30080  # NodePort from Kubernetes service
