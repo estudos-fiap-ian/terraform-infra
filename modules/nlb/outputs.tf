@@ -20,5 +20,5 @@ output "nlb_listener_arn" {
 
 output "nlb_listener_8080_arn" {
   description = "ARN of the NLB listener for direct access (port 8080)"
-  value       = aws_lb_listener.golang_api_listener_8080.arn
+  value       = aws_lb_listener.golang_api_listener.arn
 }

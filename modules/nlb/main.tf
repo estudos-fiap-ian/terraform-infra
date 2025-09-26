@@ -39,10 +39,10 @@ resource "aws_lb_target_group" "golang_api_tg" {
   }
 }
 
-# Listener on port 80 for API Gateway VPC Link
-resource "aws_lb_listener" "golang_api_listener_80" {
+# Original listener on port 8080 (keeping existing resource name)
+resource "aws_lb_listener" "golang_api_listener" {
   load_balancer_arn = aws_lb.golang_api_nlb.arn
-  port              = "80"
+  port              = "8080"
   protocol          = "TCP"
 
   default_action {
@@ -51,10 +51,10 @@ resource "aws_lb_listener" "golang_api_listener_80" {
   }
 }
 
-# Listener on port 8080 for direct access (keeping original)
-resource "aws_lb_listener" "golang_api_listener_8080" {
+# Additional listener on port 80 for API Gateway VPC Link
+resource "aws_lb_listener" "golang_api_listener_80" {
   load_balancer_arn = aws_lb.golang_api_nlb.arn
-  port              = "8080"
+  port              = "80"
   protocol          = "TCP"
 
   default_action {
