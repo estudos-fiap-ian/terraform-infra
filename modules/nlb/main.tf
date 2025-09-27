@@ -47,6 +47,30 @@ resource "aws_security_group" "vpc_link_sg" {
   }
 }
 
+# Security group rule for EKS nodes to allow NLB health checks
+data "aws_security_groups" "eks_node_sg" {
+  filter {
+    name   = "group-name"
+    values = ["eks-cluster-sg-${var.prefix}-${var.cluster_name}-*"]
+  }
+
+  filter {
+    name   = "vpc-id"
+    values = [var.vpc_id]
+  }
+}
+
+resource "aws_security_group_rule" "eks_nodes_nlb_access" {
+  count             = length(data.aws_security_groups.eks_node_sg.ids)
+  type              = "ingress"
+  from_port         = 30080
+  to_port           = 30080
+  protocol          = "tcp"
+  cidr_blocks       = ["10.0.0.0/16"]  # Allow from VPC
+  security_group_id = data.aws_security_groups.eks_node_sg.ids[count.index]
+  description       = "Allow NLB health checks on NodePort 30080"
+}
+
 resource "aws_lb_target_group" "golang_api_tg" {
   name     = "${var.prefix}-golang-api-tg"
   port     = 30080  # NodePort from Kubernetes service
