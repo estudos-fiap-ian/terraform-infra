@@ -98,7 +98,7 @@ resource "aws_lb_listener" "golang_api_listener_80" {
 
 # Get the Auto Scaling Group from the EKS node group
 data "aws_eks_node_group" "node_group" {
-  cluster_name    = var.cluster_name
+  cluster_name    = "${var.prefix}-${var.cluster_name}"  # Use full cluster name
   node_group_name = "node-1"
   depends_on      = [var.node_group_arn]
 }
