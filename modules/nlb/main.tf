@@ -101,8 +101,8 @@ data "aws_instances" "eks_nodes" {
   depends_on = [var.node_group_arn]  # Ensure this runs after EKS node group is created
 
   filter {
-    name   = "tag:aws:autoscaling:groupName"
-    values = ["${var.cluster_name}-*"]
+    name   = "tag:kubernetes.io/cluster/${var.cluster_name}"
+    values = ["owned"]
   }
 
   filter {
@@ -111,10 +111,30 @@ data "aws_instances" "eks_nodes" {
   }
 }
 
+# Fallback: if the above filter doesn't work, try eks-node-group tag
+data "aws_instances" "eks_nodes_fallback" {
+  depends_on = [var.node_group_arn]
+
+  filter {
+    name   = "tag:eks:cluster-name"
+    values = [var.cluster_name]
+  }
+
+  filter {
+    name   = "instance-state-name"
+    values = ["running"]
+  }
+}
+
+# Use primary data source or fallback
+locals {
+  instance_ids = length(data.aws_instances.eks_nodes.ids) > 0 ? data.aws_instances.eks_nodes.ids : data.aws_instances.eks_nodes_fallback.ids
+}
+
 resource "aws_lb_target_group_attachment" "golang_api_attachment" {
-  count = length(data.aws_instances.eks_nodes.ids)
+  count = length(local.instance_ids)
 
   target_group_arn = aws_lb_target_group.golang_api_tg.arn
-  target_id        = data.aws_instances.eks_nodes.ids[count.index]
+  target_id        = local.instance_ids[count.index]
   port             = 30080  # NodePort
 }
