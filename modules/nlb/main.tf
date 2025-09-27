@@ -96,45 +96,21 @@ resource "aws_lb_listener" "golang_api_listener_80" {
   }
 }
 
-# Get EKS nodes to attach to target group
-data "aws_instances" "eks_nodes" {
-  depends_on = [var.node_group_arn]  # Ensure this runs after EKS node group is created
-
-  filter {
-    name   = "tag:kubernetes.io/cluster/${var.cluster_name}"
-    values = ["owned"]
-  }
-
-  filter {
-    name   = "instance-state-name"
-    values = ["running"]
-  }
+# Get the Auto Scaling Group from the EKS node group
+data "aws_eks_node_group" "node_group" {
+  cluster_name    = var.cluster_name
+  node_group_name = "node-1"
+  depends_on      = [var.node_group_arn]
 }
 
-# Fallback: if the above filter doesn't work, try eks-node-group tag
-data "aws_instances" "eks_nodes_fallback" {
-  depends_on = [var.node_group_arn]
-
-  filter {
-    name   = "tag:eks:cluster-name"
-    values = [var.cluster_name]
-  }
-
-  filter {
-    name   = "instance-state-name"
-    values = ["running"]
-  }
+# Get instances from the Auto Scaling Group
+data "aws_autoscaling_group" "eks_asg" {
+  name       = data.aws_eks_node_group.node_group.resources[0].autoscaling_groups[0].name
+  depends_on = [data.aws_eks_node_group.node_group]
 }
 
-# Use primary data source or fallback
-locals {
-  instance_ids = length(data.aws_instances.eks_nodes.ids) > 0 ? data.aws_instances.eks_nodes.ids : data.aws_instances.eks_nodes_fallback.ids
-}
-
-resource "aws_lb_target_group_attachment" "golang_api_attachment" {
-  count = length(local.instance_ids)
-
-  target_group_arn = aws_lb_target_group.golang_api_tg.arn
-  target_id        = local.instance_ids[count.index]
-  port             = 30080  # NodePort
+# Register ASG instances as targets
+resource "aws_autoscaling_attachment" "golang_api_asg_attachment" {
+  autoscaling_group_name = data.aws_autoscaling_group.eks_asg.name
+  lb_target_group_arn    = aws_lb_target_group.golang_api_tg.arn
 }
