@@ -17,3 +17,8 @@ variable "cluster_name" {
   description = "EKS cluster name"
   type        = string
 }
+
+variable "node_group_arn" {
+  description = "EKS node group ARN for dependency"
+  type        = string
+}

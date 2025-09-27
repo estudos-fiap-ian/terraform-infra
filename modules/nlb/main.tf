@@ -98,7 +98,7 @@ resource "aws_lb_listener" "golang_api_listener_80" {
 
 # Get EKS nodes to attach to target group
 data "aws_instances" "eks_nodes" {
-  depends_on = [var.cluster_name]  # Ensure this runs after EKS cluster is created
+  depends_on = [var.node_group_arn]  # Ensure this runs after EKS node group is created
 
   filter {
     name   = "tag:aws:autoscaling:groupName"

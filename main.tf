@@ -33,9 +33,10 @@ module "eks" {
 }
 
 module "nlb" {
-  source       = "./modules/nlb"
-  prefix       = var.prefix
-  vpc_id       = module.new-vpc.vpc_id
-  subnet_ids   = module.new-vpc.subnet_ids
-  cluster_name = var.cluster_name
+  source        = "./modules/nlb"
+  prefix        = var.prefix
+  vpc_id        = module.new-vpc.vpc_id
+  subnet_ids    = module.new-vpc.subnet_ids
+  cluster_name  = var.cluster_name
+  node_group_arn = module.eks.node_group_arn
 }

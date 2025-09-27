@@ -31,3 +31,8 @@ resource "local_file" "kubeconfig" {
   filename = "kubeconfig"
   content  = local.kubeconfig
 }
+
+output "node_group_arn" {
+  description = "ARN of the EKS node group"
+  value       = aws_eks_node_group.node-1.arn
+}
